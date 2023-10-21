@@ -110,7 +110,14 @@ where
             highlighter_format: to_format,
         }
     }
-}
+
+    pub fn style(
+        mut self,
+        style: impl Into<<Renderer::Theme as StyleSheet>::Style>,
+    ) -> Self {
+        self.style = style.into();
+        self
+    }}
 
 pub struct Content<R = crate::Renderer>(RefCell<Internal<R>>)
 where

@@ -1,11 +1,13 @@
 //! Organize rendering primitives into a flattened list of layers.
 mod image;
+mod pipeline;
 mod text;
 
 pub mod mesh;
 
 pub use image::Image;
 pub use mesh::Mesh;
+pub use pipeline::Pipeline;
 pub use text::Text;
 
 use crate::core;
@@ -34,6 +36,9 @@ pub struct Layer<'a> {
 
     /// The images of the [`Layer`].
     pub images: Vec<Image>,
+
+    /// The custom pipelines of this [`Layer`].
+    pub pipelines: Vec<Pipeline>,
 }
 
 impl<'a> Layer<'a> {
@@ -45,6 +50,7 @@ impl<'a> Layer<'a> {
             meshes: Vec::new(),
             text: Vec::new(),
             images: Vec::new(),
+            pipelines: Vec::new(),
         }
     }
 
@@ -308,6 +314,20 @@ impl<'a> Layer<'a> {
                         }
                     }
                 },
+                primitive::Custom::Pipeline(pipeline) => {
+                    let layer = &mut layers[current_layer];
+                    let bounds = pipeline.bounds + translation;
+
+                    if let Some(clip_bounds) =
+                        layer.bounds.intersection(&bounds)
+                    {
+                        layer.pipelines.push(Pipeline {
+                            bounds,
+                            viewport: clip_bounds,
+                            primitive: pipeline.primitive.clone(),
+                        });
+                    }
+                }
             },
         }
     }
